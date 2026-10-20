@@ -13,11 +13,12 @@ async fn main() -> Result<(), std::io::Error> {
     let configuration = get_configuration().expect("Failed to read configuration.");
 
     let connection_string = configuration.database.connection_string();
-    let db = PgPool::connect(&connection_string)
-        .await
-        .expect("Could not connect to PG database.");
+    let db = PgPool::connect_lazy(&connection_string).expect("Could not connect to PG database.");
 
-    let listener = TcpListener::bind(format!("127.0.0.1:{}", configuration.application_port))?;
+    let listener = TcpListener::bind(format!(
+        "{}:{}",
+        configuration.application.host, configuration.application.port
+    ))?;
 
     run(listener, db)?.await
 }

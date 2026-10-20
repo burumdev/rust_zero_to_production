@@ -3,7 +3,7 @@ use std::{net::TcpListener, sync::LazyLock};
 use sqlx::{Connection, PgConnection, PgPool};
 use uuid::Uuid;
 use zero2prod::{
-    configuration::{DatabaseSettings, get_configuration},
+    configuration::{DatabaseConfiguration, get_configuration},
     telemetry::{get_subscriber, init_subscriber},
 };
 
@@ -47,7 +47,7 @@ async fn spawn_app() -> TestApp {
     }
 }
 
-pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
+pub async fn configure_database(config: &DatabaseConfiguration) -> PgPool {
     let mut connection = PgConnection::connect(&config.connection_string_without_db())
         .await
         .expect("Failed to connect to Postgres");

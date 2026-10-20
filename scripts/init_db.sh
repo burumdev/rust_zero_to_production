@@ -29,7 +29,11 @@ DB_HOST="${POSTGRES_HOST:=localhost}"
 # Launch postgres using Docker
 if [[ -z "${SKIP_DOCKER}" ]]
 then
+  # Stop and remove the existing container if it exists (running or stopped)
+  docker rm -f zero2prod_docker_postgres 2>/dev/null || true
+
   docker run \
+    --name zero2prod_docker_postgres \
     -e POSTGRES_USER=${DB_USER} \
     -e POSTGRES_PASSWORD=${DB_PASSWORD} \
     -e POSTGRES_DB=${DB_NAME} \
