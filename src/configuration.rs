@@ -1,3 +1,7 @@
+use secrecy::{ExposeSecret, SecretString};
+use serde_aux::field_attributes::deserialize_number_from_string;
+use sqlx::postgres::PgConnectOptions;
+
 #[derive(serde::Deserialize)]
 pub struct Configuration {
     pub database: DatabaseConfiguration,
@@ -5,6 +9,9 @@ pub struct Configuration {
 }
 
 pub fn get_configuration() -> Result<Configuration, config::ConfigError> {
+    // Load .env values to memory if it exists
+    dotenvy::dotenv().ok();
+
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");
 
@@ -20,8 +27,13 @@ pub fn get_configuration() -> Result<Configuration, config::ConfigError> {
             configuration_directory.join("base.yaml"),
         ))
         .add_source(config::File::from(
-            configuration_directory.join(environment_filename.as_str()),
+            configuration_directory.join(environment_filename),
         ))
+        .add_source(
+            config::Environment::with_prefix("APP")
+                .prefix_separator("_")
+                .separator("__"),
+        )
         .build()?;
 
     config.try_deserialize::<Configuration>()
@@ -58,6 +70,7 @@ impl TryFrom<String> for AppEnvironment {
 
 #[derive(serde::Deserialize)]
 pub struct ApplicationConfiguration {
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub host: String,
 }
@@ -65,24 +78,23 @@ pub struct ApplicationConfiguration {
 #[derive(serde::Deserialize)]
 pub struct DatabaseConfiguration {
     pub username: String,
-    pub password: String,
+    pub password: SecretString,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub host: String,
     pub database_name: String,
 }
 
 impl DatabaseConfiguration {
-    pub fn connection_string(&self) -> String {
-        format!(
-            "postgres://{}:{}@{}:{}/{}",
-            self.username, self.password, self.host, self.port, self.database_name
-        )
+    pub fn without_db(&self) -> PgConnectOptions {
+        PgConnectOptions::new()
+            .host(&self.host)
+            .username(&self.username)
+            .password(&self.password.expose_secret())
+            .port(self.port)
     }
 
-    pub fn connection_string_without_db(&self) -> String {
-        format!(
-            "postgres://{}:{}@{}:{}",
-            self.username, self.password, self.host, self.port,
-        )
+    pub fn with_db(&self) -> PgConnectOptions {
+        self.without_db().database(&self.database_name)
     }
 }

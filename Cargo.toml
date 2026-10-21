@@ -14,7 +14,10 @@ name = "zero2prod"
 actix-web = "4"
 chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
 config = "0.15.27"
+dotenvy = "0.15.7"
+secrecy = { version = "0.10.3", features = ["serde"] }
 serde = { version = "1.0.229", features = ["derive"] }
+serde-aux = "4.7.0"
 sqlx = { version = "0.9.0", features = ["tls-rustls", "macros", "postgres", "uuid", "chrono", "migrate", "runtime-tokio"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tracing = { version = "0.1.44", features = ["log"] }

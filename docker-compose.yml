@@ -18,6 +18,8 @@ services:
         - "8000:8000"
       environment:
         - APP_ENVIRONMENT=production
+        - APP_DATABASE__USERNAME=postgres
+        - APP_DATABASE__PASSWORD=password
       depends_on:
         - db
 

@@ -48,7 +48,7 @@ async fn spawn_app() -> TestApp {
 }
 
 pub async fn configure_database(config: &DatabaseConfiguration) -> PgPool {
-    let mut connection = PgConnection::connect(&config.connection_string_without_db())
+    let mut connection = PgConnection::connect_with(&config.without_db())
         .await
         .expect("Failed to connect to Postgres");
 
@@ -60,16 +60,16 @@ pub async fn configure_database(config: &DatabaseConfiguration) -> PgPool {
         .expect("Failed to create database.");
 
     // Migrate database
-    let connection_pool = PgPool::connect(&config.connection_string())
+    let connection = PgPool::connect_with(config.with_db())
         .await
         .expect("Failed to connect to Postgres.");
 
     sqlx::migrate!("./migrations")
-        .run(&connection_pool)
+        .run(&connection)
         .await
         .expect("Failed to migrate the database");
 
-    connection_pool
+    connection
 }
 
 #[tokio::test]
