@@ -1,9 +1,21 @@
 use unicode_segmentation::UnicodeSegmentation;
 use validator::validate_email;
 
+use crate::routes::subscriptions::FormData;
+
 pub struct NewSubscriber {
     pub email: SubscriberEmail,
     pub name: SubscriberName,
+}
+impl TryFrom<FormData> for NewSubscriber {
+    type Error = String;
+
+    fn try_from(value: FormData) -> Result<Self, Self::Error> {
+        let name = SubscriberName::parse(value.name)?;
+        let email = SubscriberEmail::parse(value.email)?;
+
+        Ok(Self { email, name })
+    }
 }
 
 #[derive(Debug)]
@@ -49,6 +61,17 @@ impl AsRef<str> for SubscriberEmail {
 mod tests {
     use crate::domain::subscriber::{SubscriberEmail, SubscriberName};
     use claims::{assert_err, assert_ok};
+    use fake::{Fake, faker::internet::en::SafeEmail};
+
+    #[derive(Debug, Clone)]
+    struct ValidEmailFixture(pub String);
+
+    impl quickcheck::Arbitrary for ValidEmailFixture {
+        fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> Self {
+            let email = SafeEmail().fake_with_rng(g);
+            Self(email)
+        }
+    }
 
     // Name tests
     #[test]
@@ -85,10 +108,10 @@ mod tests {
     }
 
     // Email tests
-    #[test]
-    fn valid_email_is_valid() {
-        let email = "email.test@email-test.org".to_string();
-        assert_ok!(SubscriberEmail::parse(email));
+    #[quickcheck_macros::quickcheck]
+    fn valid_emails_are_valid(valid_email: ValidEmailFixture) -> bool {
+        dbg!(&valid_email.0);
+        SubscriberEmail::parse(valid_email.0).is_ok()
     }
     #[test]
     fn empty_email_is_rejected() {

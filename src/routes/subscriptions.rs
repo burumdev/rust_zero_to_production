@@ -8,8 +8,15 @@ use crate::domain::subscriber::{NewSubscriber, SubscriberEmail, SubscriberName};
 
 #[derive(Deserialize)]
 pub struct FormData {
-    email: String,
-    name: String,
+    pub email: String,
+    pub name: String,
+}
+
+pub fn parse_subscriber(form: FormData) -> Result<NewSubscriber, String> {
+    let name = SubscriberName::parse(form.name)?;
+    let email = SubscriberEmail::parse(form.email)?;
+
+    Ok(NewSubscriber { email, name })
 }
 
 #[tracing::instrument(
@@ -21,15 +28,8 @@ pub struct FormData {
     )
 )]
 pub async fn subscribe(form: web::Form<FormData>, db: web::Data<PgPool>) -> HttpResponse {
-    let Ok(subscriber_name) = SubscriberName::parse(form.0.name) else {
+    let Ok(new_subscriber) = form.0.try_into() else {
         return HttpResponse::BadRequest().finish();
-    };
-    let Ok(subscriber_email) = SubscriberEmail::parse(form.0.email) else {
-        return HttpResponse::BadRequest().finish();
-    };
-    let new_subscriber = NewSubscriber {
-        email: subscriber_email,
-        name: subscriber_name,
     };
 
     match insert_subscriber(&new_subscriber, &db).await {
