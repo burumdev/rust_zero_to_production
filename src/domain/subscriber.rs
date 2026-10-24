@@ -4,7 +4,7 @@ use validator::validate_email;
 use crate::routes::subscriptions::FormData;
 
 pub struct NewSubscriber {
-    pub email: SubscriberEmail,
+    pub email: ValidEmail,
     pub name: SubscriberName,
 }
 impl TryFrom<FormData> for NewSubscriber {
@@ -12,7 +12,7 @@ impl TryFrom<FormData> for NewSubscriber {
 
     fn try_from(value: FormData) -> Result<Self, Self::Error> {
         let name = SubscriberName::parse(value.name)?;
-        let email = SubscriberEmail::parse(value.email)?;
+        let email = ValidEmail::parse(value.email)?;
 
         Ok(Self { email, name })
     }
@@ -41,17 +41,17 @@ impl AsRef<str> for SubscriberName {
 }
 
 #[derive(Debug)]
-pub struct SubscriberEmail(String);
-impl SubscriberEmail {
+pub struct ValidEmail(String);
+impl ValidEmail {
     pub fn parse(s: String) -> Result<Self, String> {
         if validate_email(&s) {
             Ok(Self(s))
         } else {
-            Err(format!("{} is not a valid subscriber email.", s))
+            Err(format!("{} is not a valid email.", s))
         }
     }
 }
-impl AsRef<str> for SubscriberEmail {
+impl AsRef<str> for ValidEmail {
     fn as_ref(&self) -> &str {
         &self.0
     }
@@ -59,7 +59,7 @@ impl AsRef<str> for SubscriberEmail {
 
 #[cfg(test)]
 mod tests {
-    use crate::domain::subscriber::{SubscriberEmail, SubscriberName};
+    use crate::domain::subscriber::{SubscriberName, ValidEmail};
     use claims::{assert_err, assert_ok};
     use fake::{Fake, faker::internet::en::SafeEmail};
 
@@ -111,23 +111,23 @@ mod tests {
     #[quickcheck_macros::quickcheck]
     fn valid_emails_are_valid(valid_email: ValidEmailFixture) -> bool {
         dbg!(&valid_email.0);
-        SubscriberEmail::parse(valid_email.0).is_ok()
+        ValidEmail::parse(valid_email.0).is_ok()
     }
     #[test]
     fn empty_email_is_rejected() {
         let email = "".to_string();
-        assert_err!(SubscriberEmail::parse(email));
+        assert_err!(ValidEmail::parse(email));
     }
 
     #[test]
     fn email_missing_at_symbol_is_rejected() {
         let email = "ursuladomain.com".to_string();
-        assert_err!(SubscriberEmail::parse(email));
+        assert_err!(ValidEmail::parse(email));
     }
 
     #[test]
     fn email_missing_subject_is_rejected() {
         let email = "@domain.com".to_string();
-        assert_err!(SubscriberEmail::parse(email));
+        assert_err!(ValidEmail::parse(email));
     }
 }

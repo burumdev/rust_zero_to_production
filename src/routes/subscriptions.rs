@@ -4,7 +4,7 @@ use serde::Deserialize;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::domain::subscriber::{NewSubscriber, SubscriberEmail, SubscriberName};
+use crate::domain::subscriber::{NewSubscriber, SubscriberName, ValidEmail};
 
 #[derive(Deserialize)]
 pub struct FormData {
@@ -14,7 +14,7 @@ pub struct FormData {
 
 pub fn parse_subscriber(form: FormData) -> Result<NewSubscriber, String> {
     let name = SubscriberName::parse(form.name)?;
-    let email = SubscriberEmail::parse(form.email)?;
+    let email = ValidEmail::parse(form.email)?;
 
     Ok(NewSubscriber { email, name })
 }

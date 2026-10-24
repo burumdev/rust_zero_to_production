@@ -4,6 +4,7 @@ use sqlx::{Connection, PgConnection, PgPool};
 use uuid::Uuid;
 use zero2prod::{
     configuration::{DatabaseConfiguration, get_configuration},
+    email_client::EmailClient,
     telemetry::{get_subscriber, init_subscriber},
 };
 
@@ -36,8 +37,23 @@ async fn spawn_app() -> TestApp {
 
     let db = configure_database(&configuration.database).await;
 
+    let timeout = configuration.email_client.timeout();
+
+    let sender_email = configuration
+        .email_client
+        .sender()
+        .expect("Invalid sender email address.");
+    let email_client = EmailClient::new(
+        configuration.email_client.base_url,
+        sender_email,
+        "Integration Test".to_string(),
+        configuration.email_client.authorization_token,
+        timeout,
+    );
+
     let port = listener.local_addr().unwrap().port();
-    let server = zero2prod::startup::run(listener, db.clone()).expect("Failed to setup server");
+    let server = zero2prod::startup::run(listener, db.clone(), email_client)
+        .expect("Failed to setup server");
 
     let _ = tokio::spawn(server);
 

@@ -2,10 +2,13 @@ use secrecy::{ExposeSecret, SecretString};
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::PgConnectOptions;
 
+use crate::domain::subscriber::ValidEmail;
+
 #[derive(serde::Deserialize)]
 pub struct Configuration {
     pub database: DatabaseConfiguration,
     pub application: ApplicationConfiguration,
+    pub email_client: EmailClientConfiguration,
 }
 
 pub fn get_configuration() -> Result<Configuration, config::ConfigError> {
@@ -96,5 +99,22 @@ impl DatabaseConfiguration {
 
     pub fn with_db(&self) -> PgConnectOptions {
         self.without_db().database(&self.database_name)
+    }
+}
+
+#[derive(serde::Deserialize)]
+pub struct EmailClientConfiguration {
+    pub base_url: String,
+    pub sender_email: String,
+    pub authorization_token: SecretString,
+    pub timeout_milliseconds: u64,
+}
+
+impl EmailClientConfiguration {
+    pub fn sender(&self) -> Result<ValidEmail, String> {
+        ValidEmail::parse(self.sender_email.clone())
+    }
+    pub fn timeout(&self) -> std::time::Duration {
+        std::time::Duration::from_millis(self.timeout_milliseconds)
     }
 }
