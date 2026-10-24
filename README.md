@@ -13,9 +13,9 @@ Some of the libraries used in the book are used with original downgraded version
 # Running
 Before running the app, make a copy of `.env-example` file as `.env` and fill in the credentials there
 with your local credentials.
+You'll need `psql` on your system and `sqlx-cli` on your Rust installation.
 
 ## Running on the local machine
-You'll need `psql` on your system and `sqlx-cli` on your Rust installation.
 * run `./scripts/init_db.sh`. This will also migrate the database
 * run `cargo run`
 
