@@ -2,7 +2,7 @@
 
 This is an implementation of an Actix-web newsletter app based on Luca Palmieri's book of the same name. It's a hands-on experience in professional Rust web stack.
 
-The book version used as reference is 2020. Some of the libraries had subtle changes in their APIs, feature flags and types. For example instead of `once_cell` crate for the Lazy initialization in integration tests, I used `LazyLock` from `std::sync`, as it is stabilized now.
+The book version used as reference is 2020. Some of the libraries had subtle changes in their APIs, feature flags and types in current versions. For example instead of `once_cell` crate for the Lazy initialization in integration tests, I used `LazyLock` from `std::sync`, as it is stabilized now.
 Some of the libraries used in the book are used with original downgraded versions for compatibility and interoperability. As a result of it, this codebase might not have the latest security advisory patches applied and shouldn't be used or derived from in production.
 
 ## Differences with the original project
