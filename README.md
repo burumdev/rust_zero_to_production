@@ -10,6 +10,7 @@ Some of the libraries used in the book are used with original downgraded version
 * DigitalOcean deployment setup is omitted
 * SSL support is disabled
 * Mailtrap API for email testing instead of Postmark
+* The `modname/mod.rs` directory structure is not used. The more preferred approach `modname.rs` in root and submodules in `modname` directory is used.
 
 # Running
 Before running the app, make a copy of `.env-example` file as `.env` and fill in the credentials there
