@@ -9,6 +9,7 @@ Some of the libraries used in the book are used with original downgraded version
 * Added docker compose setup for easier ops and communication between app docker and database docker in local development environment. So it is easy to test the app in both development and production mode in local.
 * DigitalOcean deployment setup is omitted
 * SSL support is disabled
+* Mailtrap API for email testing instead of Postmark
 
 # Running
 Before running the app, make a copy of `.env-example` file as `.env` and fill in the credentials there
