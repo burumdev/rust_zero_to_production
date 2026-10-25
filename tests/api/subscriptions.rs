@@ -3,16 +3,9 @@ use crate::helpers::spawn_app;
 #[tokio::test]
 async fn it_subscribes_to_newsletter_with_valid_form_data() {
     let test_app = spawn_app().await;
-    let client = reqwest::Client::new();
 
     let body = "name=burumdev&email=barisurum.works%40gmail.com";
-    let response = client
-        .post(&format!("{}/subscriptions", test_app.address))
-        .header("Content-Type", "application/x-www-form-urlencoded")
-        .body(body)
-        .send()
-        .await
-        .expect("Failed to execute newsletter subscription request.");
+    let response = test_app.post_subscriptions(body).await;
 
     assert_eq!(200, response.status().as_u16());
 
@@ -28,7 +21,6 @@ async fn it_subscribes_to_newsletter_with_valid_form_data() {
 #[tokio::test]
 async fn it_fails_to_subscribe_to_newsletter_with_missing_data() {
     let test_app = spawn_app().await;
-    let client = reqwest::Client::new();
 
     let test_cases = vec![
         ("name=le%20guin", "email missing"),
@@ -37,13 +29,7 @@ async fn it_fails_to_subscribe_to_newsletter_with_missing_data() {
     ];
 
     for (invalid_body, error_message) in test_cases {
-        let response = client
-            .post(&format!("{}/subscriptions", test_app.address))
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(invalid_body)
-            .send()
-            .await
-            .expect("Failed to execute newsletter subscription request.");
+        let response = test_app.post_subscriptions(invalid_body).await;
 
         assert_eq!(
             400,
@@ -57,7 +43,6 @@ async fn it_fails_to_subscribe_to_newsletter_with_missing_data() {
 #[tokio::test]
 async fn it_does_not_subscribe_newsletter_when_fields_are_present_but_empty() {
     let test_app = spawn_app().await;
-    let client = reqwest::Client::new();
     let test_cases = vec![
         ("name=&email=tester@tester.com", "empty name"),
         ("name=Ursula&email=", "empty email"),
@@ -65,13 +50,7 @@ async fn it_does_not_subscribe_newsletter_when_fields_are_present_but_empty() {
     ];
 
     for (body, description) in test_cases {
-        let response = client
-            .post(&format!("{}/subscriptions", &test_app.address))
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(body)
-            .send()
-            .await
-            .expect("Failed to execute request.");
+        let response = test_app.post_subscriptions(body).await;
 
         assert_eq!(
             400,

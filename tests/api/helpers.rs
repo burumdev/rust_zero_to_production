@@ -13,6 +13,18 @@ pub struct TestApp {
     pub db: PgPool,
 }
 
+impl TestApp {
+    pub async fn post_subscriptions(&self, body: &str) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!("{}/subscriptions", &self.address))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body(body.to_owned())
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+}
+
 static TRACING: LazyLock<()> = LazyLock::new(|| {
     let default_filter_level = "info".to_string();
     let subscriber_name = "test".to_string();
