@@ -8,14 +8,25 @@ async fn it_subscribes_to_newsletter_with_valid_form_data() {
     let response = test_app.post_subscriptions(body).await;
 
     assert_eq!(200, response.status().as_u16());
+}
 
-    let saved = sqlx::query!("SELECT email, name FROM subscriptions")
+#[tokio::test]
+async fn it_persists_new_subscriber() {
+    let test_app = spawn_app().await;
+
+    let body = "name=burumdev&email=barisurum.works%40gmail.com";
+    let response = test_app.post_subscriptions(body).await;
+
+    assert_eq!(200, response.status().as_u16());
+
+    let saved = sqlx::query!("SELECT email, name, status FROM subscriptions")
         .fetch_one(&test_app.db)
         .await
         .expect("Failed to fetch saved subscription.");
 
     assert_eq!(saved.email, "barisurum.works@gmail.com");
     assert_eq!(saved.name, "burumdev");
+    assert_eq!(saved.status, "pending_confirmation");
 }
 
 #[tokio::test]
@@ -59,18 +70,4 @@ async fn it_does_not_subscribe_newsletter_when_fields_are_present_but_empty() {
             description
         )
     }
-}
-
-#[tokio::test]
-async fn it_sends_a_confirmation_email_with_valid_subscription() {
-    let test_app = spawn_app().await;
-    let body = "name=burumdev&email=barisurum.works@gmail.com";
-
-    let response = test_app.post_subscriptions(body.into()).await;
-
-    assert_eq!(
-        200,
-        response.status().as_u16(),
-        "The API did not return a 200 when payload was valid"
-    )
 }

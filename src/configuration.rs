@@ -11,37 +11,6 @@ pub struct Configuration {
     pub email_client: EmailClientConfiguration,
 }
 
-pub fn get_configuration() -> Result<Configuration, config::ConfigError> {
-    // Load .env values to memory if it exists
-    dotenvy::dotenv().ok();
-
-    let base_path = std::env::current_dir().expect("Failed to determine the current directory");
-    let configuration_directory = base_path.join("configuration");
-
-    let environment: AppEnvironment = std::env::var("APP_ENVIRONMENT")
-        .unwrap_or_else(|_| "local".into())
-        .try_into()
-        .expect("Failed to parse APP_ENVIRONMENT.");
-
-    let environment_filename = format!("{}.yaml", environment.as_str());
-
-    let config = config::Config::builder()
-        .add_source(config::File::from(
-            configuration_directory.join("base.yaml"),
-        ))
-        .add_source(config::File::from(
-            configuration_directory.join(environment_filename),
-        ))
-        .add_source(
-            config::Environment::with_prefix("APP")
-                .prefix_separator("_")
-                .separator("__"),
-        )
-        .build()?;
-
-    config.try_deserialize::<Configuration>()
-}
-
 pub enum AppEnvironment {
     Local,
     Production,
@@ -76,6 +45,7 @@ pub struct ApplicationConfiguration {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub host: String,
+    pub base_url: String,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -117,4 +87,35 @@ impl EmailClientConfiguration {
     pub fn timeout(&self) -> std::time::Duration {
         std::time::Duration::from_millis(self.timeout_milliseconds)
     }
+}
+
+pub fn get_configuration() -> Result<Configuration, config::ConfigError> {
+    // Load .env values to memory if it exists
+    dotenvy::dotenv().ok();
+
+    let base_path = std::env::current_dir().expect("Failed to determine the current directory");
+    let configuration_directory = base_path.join("configuration");
+
+    let environment: AppEnvironment = std::env::var("APP_ENVIRONMENT")
+        .unwrap_or_else(|_| "local".into())
+        .try_into()
+        .expect("Failed to parse APP_ENVIRONMENT.");
+
+    let environment_filename = format!("{}.yaml", environment.as_str());
+
+    let config = config::Config::builder()
+        .add_source(config::File::from(
+            configuration_directory.join("base.yaml"),
+        ))
+        .add_source(config::File::from(
+            configuration_directory.join(environment_filename),
+        ))
+        .add_source(
+            config::Environment::with_prefix("APP")
+                .prefix_separator("_")
+                .separator("__"),
+        )
+        .build()?;
+
+    config.try_deserialize::<Configuration>()
 }

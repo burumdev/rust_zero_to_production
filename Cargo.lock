@@ -3636,6 +3636,7 @@ dependencies = [
  "fake",
  "quickcheck",
  "quickcheck_macros",
+ "rand 0.10.3",
  "reqwest",
  "secrecy",
  "serde",

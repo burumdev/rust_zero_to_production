@@ -1,5 +1,6 @@
 use actix_web::{HttpResponse, web};
 use chrono::Utc;
+use rand::{RngExt, distr::Alphanumeric};
 use serde::Deserialize;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -7,6 +8,7 @@ use uuid::Uuid;
 use crate::{
     domain::subscriber::{NewSubscriber, SubscriberName, ValidEmail},
     email_client::EmailClient,
+    startup::{ApplicationBaseUrl, ApplicationPort},
 };
 
 #[derive(Deserialize)]
@@ -22,6 +24,14 @@ pub fn parse_subscriber(form: FormData) -> Result<NewSubscriber, String> {
     Ok(NewSubscriber { email, name })
 }
 
+fn generate_subscription_token() -> String {
+    let mut rng = rand::rng();
+    std::iter::repeat_with(|| rng.sample(Alphanumeric))
+        .map(char::from)
+        .take(32)
+        .collect()
+}
+
 #[tracing::instrument(
     name = "Adding a new subscriber",
     skip_all,
@@ -34,18 +44,39 @@ pub async fn subscribe(
     form: web::Form<FormData>,
     db: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
+    base_url: web::Data<ApplicationBaseUrl>,
+    port: web::Data<ApplicationPort>,
 ) -> HttpResponse {
     let Ok(new_subscriber) = form.0.try_into() else {
         return HttpResponse::BadRequest().finish();
     };
 
-    if insert_subscriber(&new_subscriber, &db).await.is_err() {
-        HttpResponse::InternalServerError().finish();
-    }
+    let Ok(subscriber_id) = insert_subscriber(&new_subscriber, &db).await else {
+        return HttpResponse::InternalServerError().finish();
+    };
 
-    if send_confirmation_email(&email_client, new_subscriber)
+    let token = generate_subscription_token();
+
+    if insert_subscriber_confirmation(&subscriber_id, &token, &db)
         .await
         .is_err()
+    {
+        return HttpResponse::InternalServerError().finish();
+    };
+
+    let mut port_str = String::new();
+    if port.0 != 80 {
+        port_str.push_str(&format!(":{}", port.0));
+    };
+    if send_confirmation_email(
+        &email_client,
+        new_subscriber,
+        &base_url.0,
+        &port_str,
+        &token,
+    )
+    .await
+    .is_err()
     {
         return HttpResponse::InternalServerError().finish();
     }
@@ -60,8 +91,13 @@ pub async fn subscribe(
 pub async fn send_confirmation_email(
     email_client: &EmailClient,
     new_subscriber: NewSubscriber,
+    base_url: &str,
+    port: &str,
+    subscription_token: &str,
 ) -> Result<(), reqwest::Error> {
-    let confirmation_link = "https://there-is-no-such-domain.com/subscriptions/confirm";
+    let confirmation_link =
+        format!("{base_url}{port}/subscriptions/confirm?subscription_token={subscription_token}");
+
     let html_body = format!(
         "Welcome to our newsletter! Click {} to confirm your subscription.",
         confirmation_link
@@ -76,13 +112,14 @@ pub async fn send_confirmation_email(
 pub async fn insert_subscriber(
     new_subscriber: &NewSubscriber,
     db: &PgPool,
-) -> Result<(), sqlx::Error> {
+) -> Result<Uuid, sqlx::Error> {
+    let subscriber_id = Uuid::new_v4();
     sqlx::query!(
         r#"
             INSERT INTO subscriptions (id, email, name, subscribed_at, status)
             VALUES ($1, $2, $3, $4, $5)
         "#,
-        Uuid::new_v4(),
+        subscriber_id,
         new_subscriber.email.as_ref(),
         new_subscriber.name.as_ref(),
         Utc::now(),
@@ -92,6 +129,30 @@ pub async fn insert_subscriber(
     .await
     .map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
+
+    Ok(subscriber_id)
+}
+
+#[tracing::instrument(name = "Creating new subscription confirmation record", skip_all)]
+pub async fn insert_subscriber_confirmation(
+    subscriber_id: &Uuid,
+    token: &str,
+    db: &PgPool,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"
+            INSERT INTO subscription_tokens (subscription_token, subscriber_id)
+            VALUES ($1, $2)
+        "#,
+        token,
+        subscriber_id,
+    )
+    .execute(db)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute confirmation query: {:?}", e);
         e
     })?;
 
