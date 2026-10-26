@@ -2,6 +2,3 @@ application:
   host: 0.0.0.0
 database:
   host: "db"
-email_client:
-  base_url: "https://sandbox.api.mailtrap.io/api/send/404585"
-  sender_email: "from@example.com"

@@ -9,9 +9,14 @@ struct EmailRequestFrom<'a> {
 }
 
 #[derive(serde::Serialize)]
+struct EmailRequestTo<'a> {
+    email: &'a str,
+}
+
+#[derive(serde::Serialize)]
 struct EmailRequest<'a> {
     from: EmailRequestFrom<'a>,
-    to: Vec<&'a str>,
+    to: Vec<&'a EmailRequestTo<'a>>,
     subject: &'a str,
     text: &'a str,
     category: &'a str,
@@ -50,24 +55,24 @@ impl EmailClient {
         subject: &str,
         content: &str,
     ) -> Result<(), reqwest::Error> {
-        let email_request_sender = EmailRequestFrom {
+        let email_request_from = EmailRequestFrom {
             email: self.sender.as_ref(),
             name: self.name.as_str(),
         };
+        let email_request_to = EmailRequestTo {
+            email: recipient.as_ref(),
+        };
         let email_request = EmailRequest {
-            from: email_request_sender,
-            to: vec![recipient.as_ref()],
+            from: email_request_from,
+            to: vec![&email_request_to],
             subject,
             text: content,
             category: "Integration Test",
         };
 
-        let mut auth_header_value = String::from("Bearer ");
-        auth_header_value.push_str(self.authorization_token.expose_secret());
-
         self.http_client
             .post(self.base_url.clone())
-            .header("Authorization", auth_header_value)
+            .header("Api-Token", self.authorization_token.expose_secret())
             .json(&email_request)
             .send()
             .await?
@@ -134,7 +139,7 @@ mod tests {
         let mock_server = MockServer::start().await;
         let email_client = email_client(mock_server.uri());
 
-        Mock::given(matchers::header_exists("Authorization"))
+        Mock::given(matchers::header_exists("Api-Token"))
             .and(matchers::header("Content-Type", "application/json"))
             .and(matchers::method("POST"))
             .and(SendEmailBodyMatcher)

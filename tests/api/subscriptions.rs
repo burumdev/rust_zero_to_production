@@ -60,3 +60,17 @@ async fn it_does_not_subscribe_newsletter_when_fields_are_present_but_empty() {
         )
     }
 }
+
+#[tokio::test]
+async fn it_sends_a_confirmation_email_with_valid_subscription() {
+    let test_app = spawn_app().await;
+    let body = "name=burumdev&email=barisurum.works@gmail.com";
+
+    let response = test_app.post_subscriptions(body.into()).await;
+
+    assert_eq!(
+        200,
+        response.status().as_u16(),
+        "The API did not return a 200 when payload was valid"
+    )
+}
