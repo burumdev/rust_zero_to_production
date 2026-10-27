@@ -2,7 +2,7 @@ use actix_web::{HttpResponse, web};
 use chrono::Utc;
 use rand::{RngExt, distr::Alphanumeric};
 use serde::Deserialize;
-use sqlx::PgPool;
+use sqlx::{Executor, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::{
@@ -51,21 +51,29 @@ pub async fn subscribe(
         return HttpResponse::BadRequest().finish();
     };
 
-    let Ok(subscriber_id) = insert_subscriber(&new_subscriber, &db).await else {
+    let Ok(mut transaction) = db.begin().await else {
+        return HttpResponse::InternalServerError().finish();
+    };
+
+    let Ok(subscriber_id) = insert_subscriber(&new_subscriber, &mut transaction).await else {
         return HttpResponse::InternalServerError().finish();
     };
 
     let token = generate_subscription_token();
 
-    if insert_subscriber_confirmation(&subscriber_id, &token, &db)
+    if insert_subscriber_confirmation(&subscriber_id, &token, &mut transaction)
         .await
         .is_err()
     {
         return HttpResponse::InternalServerError().finish();
     };
 
+    if transaction.commit().await.is_err() {
+        return HttpResponse::InternalServerError().finish();
+    }
+
     let mut port_str = String::new();
-    if port.0 != 80 {
+    if port.0 != 80 && port.0 != 0 {
         port_str.push_str(&format!(":{}", port.0));
     };
     if send_confirmation_email(
@@ -111,10 +119,10 @@ pub async fn send_confirmation_email(
 #[tracing::instrument(name = "Saving new subscriber details to the database", skip_all)]
 pub async fn insert_subscriber(
     new_subscriber: &NewSubscriber,
-    db: &PgPool,
+    transaction: &mut Transaction<'_, Postgres>,
 ) -> Result<Uuid, sqlx::Error> {
     let subscriber_id = Uuid::new_v4();
-    sqlx::query!(
+    let query = sqlx::query!(
         r#"
             INSERT INTO subscriptions (id, email, name, subscribed_at, status)
             VALUES ($1, $2, $3, $4, $5)
@@ -124,10 +132,9 @@ pub async fn insert_subscriber(
         new_subscriber.name.as_ref(),
         Utc::now(),
         "pending_confirmation"
-    )
-    .execute(db)
-    .await
-    .map_err(|e| {
+    );
+
+    transaction.execute(query).await.map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);
         e
     })?;
@@ -139,19 +146,18 @@ pub async fn insert_subscriber(
 pub async fn insert_subscriber_confirmation(
     subscriber_id: &Uuid,
     token: &str,
-    db: &PgPool,
+    transaction: &mut Transaction<'_, Postgres>,
 ) -> Result<(), sqlx::Error> {
-    sqlx::query!(
+    let query = sqlx::query!(
         r#"
             INSERT INTO subscription_tokens (subscription_token, subscriber_id)
             VALUES ($1, $2)
         "#,
         token,
         subscriber_id,
-    )
-    .execute(db)
-    .await
-    .map_err(|e| {
+    );
+
+    transaction.execute(query).await.map_err(|e| {
         tracing::error!("Failed to execute confirmation query: {:?}", e);
         e
     })?;
