@@ -3,9 +3,14 @@ services:
     image: postgres:15-alpine
     container_name: zero2prod_docker_db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: newsletter
+      - POSTGRES_USER=${APP_DATABASE__USERNAME}
+      - POSTGRES_PASSWORD=${APP_DATABASE__PASSWORD}
+      - POSTGRES_DB=${APP_DATABASE__DATABASE_NAME}
+    # Not necessary in app testing environment
+    # I prefer the database gets destroyed and reseeded
+    # every reset.
+    #volumes:
+      #- pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -18,10 +23,8 @@ services:
             - .env
       environment:
         - APP_ENVIRONMENT=production
-        - APP_DATABASE__USERNAME=postgres
-        - APP_DATABASE__PASSWORD=password
-      depends_on:
-        - db
+        - APP_DATABASE__USERNAME=${APP_DATABASE__USERNAME}
+        - APP_DATABASE__PASSWORD=${APP_DATABASE__PASSWORD}
 
 networks:
   default:
