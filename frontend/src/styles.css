@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+@import './fonts.css';
+
+@theme {
+  --color-white: #eee;
+  --color-section: #1c0047;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  color: var(--color-white);
+  font-family: 'Press Start 2P', Arial, sans-serif;
+  background-image: linear-gradient(to bottom, #020917, #101725);
+  background-repeat: no-repeat;
+}
