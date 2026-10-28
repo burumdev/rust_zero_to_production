@@ -16,7 +16,7 @@ pub struct TestApp {
 impl TestApp {
     pub async fn post_subscriptions(&self, body: &str) -> reqwest::Response {
         reqwest::Client::new()
-            .post(&format!("{}/subscriptions", &self.address))
+            .post(&format!("{}/api/subscriptions", &self.address))
             .header("Content-Type", "application/x-www-form-urlencoded")
             .body(body.to_owned())
             .send()

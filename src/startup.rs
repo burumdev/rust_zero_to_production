@@ -1,5 +1,6 @@
 use std::net::TcpListener;
 
+use actix_files::Files;
 use actix_web::{App, HttpServer, dev::Server, web};
 use sqlx::{PgPool, postgres::PgPoolOptions};
 use tracing_actix_web::TracingLogger;
@@ -84,13 +85,30 @@ pub fn run(
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
-            .route("/health_check", web::get().to(health_check))
-            .route("/subscriptions", web::post().to(subscribe))
-            .route("/subscriptions/confirm", web::get().to(confirm))
+            .service(
+                web::scope("/api")
+                    .route("/health_check", web::get().to(health_check))
+                    .route("/subscriptions", web::post().to(subscribe))
+                    .route("/subscriptions/confirm", web::get().to(confirm)),
+            )
             .app_data(db.clone())
             .app_data(email_client.clone())
             .app_data(base_url.clone())
             .app_data(port.clone())
+            .service(
+                Files::new("/", "./frontend/dist")
+                    .index_file("index.html")
+                    .prefer_utf8(true)
+                    .default_handler(|req: actix_web::dev::ServiceRequest| {
+                        let (http_req, _payload) = req.into_parts();
+                        async move {
+                            let response =
+                                actix_files::NamedFile::open("./frontend/dist/index.html")?
+                                    .into_response(&http_req);
+                            Ok(actix_web::dev::ServiceResponse::new(http_req, response))
+                        }
+                    }),
+            )
     })
     .listen(listener)?
     .run();
