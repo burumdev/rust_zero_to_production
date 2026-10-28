@@ -16,12 +16,9 @@ Some of the libraries used in the book are used with original downgraded version
 
 # Running
 Before running the app, make a copy of `.env-example` file as `.env` and fill in the credentials there
-with your local credentials.
+with your local credentials. And run `pnpm install` in `frontend` directory to pull frontend dependencies.
 * You'll need `psql` on your system and `sqlx-cli` on your Rust installation.
 * You'll need `Node.js` and `pnpm` installed for the frontend build.
-
-## Before running
-* run `pnpm install` in `frontend` directory
 
 ## Running on the local machine
 * run `./scripts/init_db.sh`. This will also migrate the database
