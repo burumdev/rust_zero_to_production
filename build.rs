@@ -1,6 +1,14 @@
 use std::process::Command;
 
 fn main() {
+    // Skip frontend build if running containerized in Docker
+    if std::env::var("DOCKER_BUILD_SKIP_FRONTEND").is_ok() {
+        println!(
+            "cargo:warning=Skipping frontend build in build.rs. This is already handled by earlier Docker stage."
+        );
+        return;
+    }
+
     println!("cargo:warning=Running 'pnpm run build'...");
     // Running the build command
     let status = Command::new("pnpm")
