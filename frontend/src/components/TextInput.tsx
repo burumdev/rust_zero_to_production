@@ -4,9 +4,16 @@ import './TextInput.css';
 interface TextInputProps {
   placeholder?: string;
   is_focused?: boolean;
+  onChange: (e: any) => void;
+  value: string;
 }
 
-const TextInput: React.FC<TextInputProps> = ({ placeholder, is_focused }) => {
+const TextInput: React.FC<TextInputProps> = ({
+  placeholder,
+  is_focused,
+  onChange,
+  value,
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -21,6 +28,8 @@ const TextInput: React.FC<TextInputProps> = ({ placeholder, is_focused }) => {
         ref={inputRef}
         className="step-box bg-yellow w-full h-full px-3 placeholder-yellow-100"
         placeholder={placeholder || undefined}
+        onChange={(e) => onChange(e)}
+        value={value}
       />
     </div>
   );

@@ -14,11 +14,11 @@ pub struct TestApp {
 }
 
 impl TestApp {
-    pub async fn post_subscriptions(&self, body: &str) -> reqwest::Response {
+    pub async fn post_subscriptions(&self, json_str: &str) -> reqwest::Response {
         reqwest::Client::new()
             .post(&format!("{}/api/subscriptions", &self.address))
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(body.to_owned())
+            .header("Content-Type", "application/json")
+            .body(json_str.to_owned())
             .send()
             .await
             .expect("Failed to execute request.")

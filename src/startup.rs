@@ -1,5 +1,6 @@
 use std::net::TcpListener;
 
+use actix_cors::Cors;
 use actix_files::Files;
 use actix_web::{App, HttpServer, dev::Server, web};
 use sqlx::{PgPool, postgres::PgPoolOptions};
@@ -49,6 +50,7 @@ impl Application {
             email_client,
             configuration.application.base_url,
             configuration.application.port,
+            configuration.application.frontend_dev_origin,
         )?;
 
         Ok(Self { port, server })
@@ -76,6 +78,7 @@ pub fn run(
     email_client: EmailClient,
     base_url: String,
     port: u16,
+    frontend_dev_origin: String,
 ) -> Result<Server, std::io::Error> {
     let db = web::Data::new(db);
     let email_client = web::Data::new(email_client);
@@ -83,7 +86,17 @@ pub fn run(
     let port = web::Data::new(ApplicationPort(port));
 
     let server = HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_origin(&frontend_dev_origin)
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+            .allowed_headers(vec![
+                actix_web::http::header::CONTENT_TYPE,
+                actix_web::http::header::AUTHORIZATION,
+            ])
+            .max_age(3600);
+
         App::new()
+            .wrap(cors)
             .wrap(TracingLogger::default())
             .service(
                 web::scope("/api")

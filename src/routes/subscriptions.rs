@@ -6,7 +6,7 @@ use sqlx::{Executor, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::{
-    domain::subscriber::{NewSubscriber, SubscriberName, ValidEmail},
+    domain::subscriber::NewSubscriber,
     email_client::EmailClient,
     startup::{ApplicationBaseUrl, ApplicationPort},
 };
@@ -15,13 +15,6 @@ use crate::{
 pub struct FormData {
     pub email: String,
     pub name: String,
-}
-
-pub fn parse_subscriber(form: FormData) -> Result<NewSubscriber, String> {
-    let name = SubscriberName::parse(form.name)?;
-    let email = ValidEmail::parse(form.email)?;
-
-    Ok(NewSubscriber { email, name })
 }
 
 fn generate_subscription_token() -> String {
@@ -41,7 +34,7 @@ fn generate_subscription_token() -> String {
     )
 )]
 pub async fn subscribe(
-    form: web::Form<FormData>,
+    form: web::Json<FormData>,
     db: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
     base_url: web::Data<ApplicationBaseUrl>,

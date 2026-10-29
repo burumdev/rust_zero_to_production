@@ -46,6 +46,7 @@ pub struct ApplicationConfiguration {
     pub port: u16,
     pub host: String,
     pub base_url: String,
+    pub frontend_dev_origin: String,
 }
 
 #[derive(serde::Deserialize, Clone)]

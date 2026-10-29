@@ -1,15 +1,20 @@
 import { useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
+import Header from '@components/Header';
+import Modal from '@components/Modal';
+import LoginModal from '@user/components/LoginModal';
+
 import './App.css';
 
-import Header from './components/Header';
-import Modal from './components/common/Modal';
-import LoginModal from './components/LoginModal';
+const queryClient = new QueryClient();
 
 const App = () => {
   const [isLoginModalOpen, setLoginModalOpen] = useState(true);
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <Header />
       <div className="flex flex-col items-center justify-center">
         <img className="-mt-[20px]" src="/images/logo.svg" />
@@ -23,7 +28,8 @@ const App = () => {
       <Modal isOpen={isLoginModalOpen} onClose={() => setLoginModalOpen(false)}>
         <LoginModal />
       </Modal>
-    </>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
 };
 
