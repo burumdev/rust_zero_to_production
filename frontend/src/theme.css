@@ -1,0 +1,18 @@
+@theme static {
+  /* COLORS */
+  --color-white: #eff;
+  --color-error: #ff0019;
+  --color-highlight: #00ffff;
+  --color-highlight-darker: #005b5b;
+  --color-section: #1c0047;
+  --color-yellow: #ecd078;
+  /* TEXT */
+  --text-xs: 0.5rem;
+  --text-sm: 0.75rem;
+  --text-base: 1rem;
+  --text-lg: 1.5rem;
+  --text-xl: 3rem;
+  /* SIZING */
+  --pixel-size: 4px;
+  --spacing-forminput: 36px;
+}

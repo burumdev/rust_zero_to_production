@@ -24,11 +24,11 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="m-auto p-8 pixel-corners--wrapper"
+      className="m-auto p-10 pixel-round-corners--wrapper bg-white"
     >
       <button
         onClick={onClose}
-        className="absolute right-4 top-4 text-error cursor-pointer"
+        className="absolute right-4 top-4 text-error cursor-pointer text-lg"
       >
         X
       </button>

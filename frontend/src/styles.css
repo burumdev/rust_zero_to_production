@@ -1,12 +1,7 @@
 @import 'tailwindcss';
 @import './fonts.css';
-
-@theme {
-  --color-white: #eee;
-  --color-error: #ff0019;
-  --color-highlight: cyan;
-  --color-section: #1c0047;
-}
+@import './retro.css';
+@import './theme.css';
 
 * {
   box-sizing: border-box;
@@ -14,178 +9,11 @@
 }
 
 body {
+  font-size: 16px;
   margin: 0;
   height: 100vh;
   color: var(--color-white);
   font-family: 'Press Start 2P', Arial, sans-serif;
   background-image: linear-gradient(to bottom, #020917, #101725);
   background-repeat: no-repeat;
-}
-
-.pixel-corners,
-.pixel-corners--wrapper {
-  clip-path: polygon(
-    0px calc(100% - 20px),
-    4px calc(100% - 20px),
-    4px calc(100% - 12px),
-    8px calc(100% - 12px),
-    8px calc(100% - 8px),
-    12px calc(100% - 8px),
-    12px calc(100% - 4px),
-    20px calc(100% - 4px),
-    20px 100%,
-    calc(100% - 20px) 100%,
-    calc(100% - 20px) calc(100% - 4px),
-    calc(100% - 12px) calc(100% - 4px),
-    calc(100% - 12px) calc(100% - 8px),
-    calc(100% - 8px) calc(100% - 8px),
-    calc(100% - 8px) calc(100% - 12px),
-    calc(100% - 4px) calc(100% - 12px),
-    calc(100% - 4px) calc(100% - 20px),
-    100% calc(100% - 20px),
-    100% 20px,
-    calc(100% - 4px) 20px,
-    calc(100% - 4px) 12px,
-    calc(100% - 8px) 12px,
-    calc(100% - 8px) 8px,
-    calc(100% - 12px) 8px,
-    calc(100% - 12px) 4px,
-    calc(100% - 20px) 4px,
-    calc(100% - 20px) 0px,
-    20px 0px,
-    20px 4px,
-    12px 4px,
-    12px 8px,
-    8px 8px,
-    8px 12px,
-    4px 12px,
-    4px 20px,
-    0px 20px
-  );
-  position: relative;
-}
-.pixel-corners {
-  border: 4px solid transparent;
-}
-.pixel-corners--wrapper {
-  width: fit-content;
-  height: fit-content;
-}
-.pixel-corners--wrapper .pixel-corners {
-  display: block;
-  clip-path: polygon(
-    4px 20px,
-    8px 20px,
-    8px 12px,
-    12px 12px,
-    12px 8px,
-    20px 8px,
-    20px 4px,
-    calc(100% - 20px) 4px,
-    calc(100% - 20px) 8px,
-    calc(100% - 12px) 8px,
-    calc(100% - 12px) 12px,
-    calc(100% - 8px) 12px,
-    calc(100% - 8px) 20px,
-    calc(100% - 4px) 20px,
-    calc(100% - 4px) calc(100% - 20px),
-    calc(100% - 8px) calc(100% - 20px),
-    calc(100% - 8px) calc(100% - 12px),
-    calc(100% - 12px) calc(100% - 12px),
-    calc(100% - 12px) calc(100% - 8px),
-    calc(100% - 20px) calc(100% - 8px),
-    calc(100% - 20px) calc(100% - 4px),
-    20px calc(100% - 4px),
-    20px calc(100% - 8px),
-    12px calc(100% - 8px),
-    12px calc(100% - 12px),
-    8px calc(100% - 12px),
-    8px calc(100% - 20px),
-    4px calc(100% - 20px)
-  );
-}
-.pixel-corners::after,
-.pixel-corners--wrapper::after {
-  content: '';
-  position: absolute;
-  clip-path: polygon(
-    0px calc(100% - 20px),
-    4px calc(100% - 20px),
-    4px calc(100% - 12px),
-    8px calc(100% - 12px),
-    8px calc(100% - 8px),
-    12px calc(100% - 8px),
-    12px calc(100% - 4px),
-    20px calc(100% - 4px),
-    20px 100%,
-    calc(100% - 20px) 100%,
-    calc(100% - 20px) calc(100% - 4px),
-    calc(100% - 12px) calc(100% - 4px),
-    calc(100% - 12px) calc(100% - 8px),
-    calc(100% - 8px) calc(100% - 8px),
-    calc(100% - 8px) calc(100% - 12px),
-    calc(100% - 4px) calc(100% - 12px),
-    calc(100% - 4px) calc(100% - 20px),
-    100% calc(100% - 20px),
-    100% 20px,
-    calc(100% - 4px) 20px,
-    calc(100% - 4px) 12px,
-    calc(100% - 8px) 12px,
-    calc(100% - 8px) 8px,
-    calc(100% - 12px) 8px,
-    calc(100% - 12px) 4px,
-    calc(100% - 20px) 4px,
-    calc(100% - 20px) 0px,
-    20px 0px,
-    20px 4px,
-    12px 4px,
-    12px 8px,
-    8px 8px,
-    8px 12px,
-    4px 12px,
-    4px 20px,
-    0px 20px,
-    0px 50%,
-    4px 50%,
-    4px 20px,
-    8px 20px,
-    8px 12px,
-    12px 12px,
-    12px 8px,
-    20px 8px,
-    20px 4px,
-    calc(100% - 20px) 4px,
-    calc(100% - 20px) 8px,
-    calc(100% - 12px) 8px,
-    calc(100% - 12px) 12px,
-    calc(100% - 8px) 12px,
-    calc(100% - 8px) 20px,
-    calc(100% - 4px) 20px,
-    calc(100% - 4px) calc(100% - 20px),
-    calc(100% - 8px) calc(100% - 20px),
-    calc(100% - 8px) calc(100% - 12px),
-    calc(100% - 12px) calc(100% - 12px),
-    calc(100% - 12px) calc(100% - 8px),
-    calc(100% - 20px) calc(100% - 8px),
-    calc(100% - 20px) calc(100% - 4px),
-    20px calc(100% - 4px),
-    20px calc(100% - 8px),
-    12px calc(100% - 8px),
-    12px calc(100% - 12px),
-    8px calc(100% - 12px),
-    8px calc(100% - 20px),
-    4px calc(100% - 20px),
-    4px 50%,
-    0px 50%
-  );
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--color-highlight);
-  display: block;
-  pointer-events: none;
-}
-.pixel-corners::after {
-  margin: -4px;
 }
