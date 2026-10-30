@@ -25,6 +25,7 @@ services:
         - APP_ENVIRONMENT=production
         - APP_DATABASE__USERNAME=${APP_DATABASE__USERNAME}
         - APP_DATABASE__PASSWORD=${APP_DATABASE__PASSWORD}
+        - APP_DATABASE__HOST=db
 
 networks:
   default:
