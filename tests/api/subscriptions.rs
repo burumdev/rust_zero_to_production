@@ -77,3 +77,19 @@ async fn it_does_not_subscribe_newsletter_when_fields_are_present_but_empty() {
         )
     }
 }
+
+#[tokio::test]
+async fn it_fails_to_subscribe_with_database_column_missing() {
+    let test_app = spawn_app().await;
+    let body = "{\"name\": \"myname\",\"email\":\"email@example.com\"}";
+
+    // Create a fault in the database schema
+    sqlx::query!("ALTER TABLE subscription_tokens DROP COLUMN subscription_token;")
+        .execute(&test_app.db)
+        .await
+        .unwrap();
+
+    let response = test_app.post_subscriptions(body).await;
+
+    assert_eq!(response.status().as_u16(), 500);
+}
